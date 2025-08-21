@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>Hacker Stream</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: black;
+      font-family: monospace;
+      font-size: 14px;
+      height: 100%;
+      overflow: hidden;
+    }
+    #container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      overflow-y: scroll;
+    }
+    .line {
+      white-space: pre;
+      height: 18px;
+      color: white;
+      transition: color 0.1s;
+    }
+    .invisible {
+      color: black;
+    }
+  </style>
+</head>
+<body>
+  <div id="container"></div>
+
+  <script>
+    const container = document.getElementById('container');
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*()_+=-<>?/|';
+    const maxLines = 100;
+    const lineLength = 80;
+    let lines = [];
+    let streamInterval;
+    let scanIndex = 0;
+
+    function generateLine() {
+      const div = document.createElement('div');
+      div.className = 'line';
+
+      const symbolCount = Math.floor(Math.random() * lineLength) + 1;
+      let line = '';
+      for (let i = 0; i < symbolCount; i++) {
+        line += chars[Math.floor(Math.random() * chars.length)];
+      }
+
+      div.textContent = line;
+      container.appendChild(div);
+      lines.push(div);
+      container.scrollTop = container.scrollHeight;
+
+      if (lines.length > maxLines) {
+        container.removeChild(lines[0]);
+        lines.shift();
+      }
+    }
+
+    function startStream() {
+      streamInterval = setInterval(generateLine, 30);
+    }
+
+    function stopStream() {
+      clearInterval(streamInterval);
+      scanCycle();
+    }
+
+    function getVisibleLines() {
+      const top = container.scrollTop;
+      const bottom = top + container.clientHeight;
+      return lines.filter(line => {
+        const y = line.offsetTop;
+        return y >= top && y < bottom;
+      });
+    }
+
+    function scanCycle() {
+      const visible = getVisibleLines();
+      const total = visible.length;
+      if (total === 0) {
+        setTimeout(scanCycle, 100);
+        return;
+      }
+
+      const current = visible[scanIndex % total];
+
+      if (current) {
+        current.classList.add('invisible');
+
+        // Обновляем текст
+        const symbolCount = Math.floor(Math.random() * lineLength) + 1;
+        let newText = '';
+        for (let i = 0; i < symbolCount; i++) {
+          newText += chars[Math.floor(Math.random() * chars.length)];
+        }
+        current.textContent = newText;
+
+        // Восстановление через задержку
+        setTimeout(() => {
+          current.classList.remove('invisible');
+        }, 300);
+      }
+
+      scanIndex = (scanIndex + 1) % total;
+      setTimeout(scanCycle, 20);
+    }
+
+    startStream();
+    setTimeout(stopStream, 5000);
+  </script>
+</body>
+</html>
